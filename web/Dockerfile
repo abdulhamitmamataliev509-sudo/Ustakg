@@ -1,36 +1,17 @@
-FROM node:18-alpine AS builder
+﻿FROM node:18-alpine AS builder
 WORKDIR /app
-COPY web/package.json web/package-lock.json* ./
-RUN npm ci --production=false
-COPY web .
+COPY package*.json ./
+RUN npm install
+COPY . .
 RUN npm run build
 
 FROM node:18-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/next.config.js ./next.config.js
-
-EXPOSE 3000
-CMD ["npm", "start"]
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY web/package.json web/package-lock.json* ./
-RUN npm ci --production=false
-COPY web .
-RUN npm run build
-
-FROM node:18-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/next.config.js ./next.config.js
-
 EXPOSE 3000
 CMD ["npm", "start"]
