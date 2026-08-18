@@ -1,0 +1,27 @@
+# ==================================================
+# Usta kg — Backend Python Dependencies
+# FastAPI + SQLAlchemy + Alembic + PostgreSQL
+# ==================================================
+
+# Web framework
+fastapi
+uvicorn[standard]
+
+# Database ORM & migrations
+sqlalchemy
+alembic
+psycopg2-binary
+# asyncpg  # <-- alternative async PostgreSQL driver
+
+# Validation & settings
+pydantic
+pydantic-settings
+
+# Auth / security
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# Testing
+pytest
+httpx2  # required by starlette TestClient

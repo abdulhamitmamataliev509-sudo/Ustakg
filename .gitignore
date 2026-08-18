@@ -3,33 +3,22 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
-.env
-
-# Node / Expo
-node_modules/
-.expo/
-dist/
-web-build/
-
-# OS & IDE
-.DS_Store
-.vscode/
-.idea/
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-venv/
 env/
 .env
+.pytest_cache/
+*.egg-info/
+dist/
+build/
 
-# Node / React Native / Expo
+# Node / Expo / React Native
 node_modules/
 .expo/
-dist/
 web-build/
+.next/
+out/
 
 # OS & IDE
 .DS_Store
 .vscode/
 .idea/
+*.log
