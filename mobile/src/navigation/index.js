@@ -5,6 +5,7 @@ import AuthStack from './AuthStack';
 import CustomerTabs from './CustomerTabs';
 import MasterTabs from './MasterTabs';
 import OrderDetailsScreen from '../screens/OrderDetailsScreen';
+import ChatScreen from '../screens/ChatScreen';
 
 const Root = createNativeStackNavigator();
 
@@ -23,6 +24,7 @@ export default function RootNavigator() {
         <Root.Screen name="Customer" component={CustomerTabs} options={{ headerShown: false }} />
       )}
       <Root.Screen name="OrderDetails" component={OrderDetailsScreen} />
+      <Root.Screen name="Chat" component={ChatScreen} />
     </Root.Navigator>
   );
 }
