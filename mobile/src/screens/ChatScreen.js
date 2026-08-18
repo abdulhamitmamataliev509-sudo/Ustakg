@@ -23,7 +23,7 @@ export default function ChatScreen({ route }){
     const ws = new WebSocket(url);
     wsRef.current = ws;
     ws.onopen = ()=>{
-      console.log('ws open', url);
+      // connected
     };
     ws.onmessage = (ev)=>{
       try{
@@ -34,7 +34,7 @@ export default function ChatScreen({ route }){
       }catch(e){ console.warn(e) }
     };
     ws.onclose = ()=>{
-      console.log('ws closed');
+      // closed (will attempt reconnect)
       // naive reconnect after 1s
       setTimeout(()=>{
         if (wsRef.current === ws) {
