@@ -1,9 +1,9 @@
 """Application settings loaded from environment variables via Pydantic Settings."""
 from functools import lru_cache
-from typing import List
+from typing import Annotated, List
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "super-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
     # PostgreSQL
     POSTGRES_SERVER: str = "localhost"
@@ -40,7 +41,9 @@ class Settings(BaseSettings):
     POSTGRES_URL: str = ""
 
     # CORS
-    CORS_ORIGINS: List[str] = [
+    # NoDecode keeps comma-separated strings flowing into the validator below
+    # instead of attempting JSON decoding first.
+    CORS_ORIGINS: Annotated[List[str], NoDecode] = [
         "http://localhost:3000",
         "http://localhost:8081",
     ]
