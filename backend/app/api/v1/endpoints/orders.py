@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_current_user
+from app.core.analytics import track_event
 from app.core.database import get_db
 from app.models.category import Category
 from app.models.enums import OrderStatus, UserRole
@@ -30,6 +31,16 @@ def create_order(
     db.add(order)
     db.commit()
     db.refresh(order)
+
+    track_event(
+        "order.created",
+        {
+            "order_id": str(order.id),
+            "customer_id": str(order.customer_id),
+            "category_id": str(order.category_id),
+            "status": order.status.value,
+        },
+    )
     return order
 
 

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_active_master, get_current_user
+from app.core.analytics import track_event
 from app.core.database import get_db
 from app.models.enums import OfferStatus, OrderStatus, UserRole
 from app.models.master import MasterProfile
@@ -129,4 +130,13 @@ def accept_offer(
         chat = Chat(order_id=order.id, customer_id=order.customer_id, master_id=offer.master_id)
         db.add(chat)
         db.commit()
+
+    track_event(
+        "offer.accepted",
+        {
+            "offer_id": str(offer.id),
+            "order_id": str(order.id),
+            "master_id": str(offer.master_id),
+        },
+    )
     return offer

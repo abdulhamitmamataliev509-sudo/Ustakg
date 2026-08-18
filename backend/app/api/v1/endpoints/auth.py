@@ -5,6 +5,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.analytics import track_event
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import (
@@ -49,6 +50,11 @@ def register(payload: UserRegister, db: Session = Depends(get_db)) -> Token:
     if payload.role == UserRole.MASTER:
         db.add(MasterProfile(user_id=user.id))
     db.commit()
+
+    track_event(
+        "user.registered",
+        {"user_id": str(user.id), "role": user.role.value},
+    )
 
     return Token(
         access_token=create_access_token(user.id),

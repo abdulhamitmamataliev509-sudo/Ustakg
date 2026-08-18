@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.analytics import track_event
 from app.core.database import get_db
 from app.models.enums import OfferStatus, OrderStatus, UserRole
 from app.models.master import MasterProfile
@@ -74,4 +75,14 @@ def create_review(
     db.add(review)
     db.commit()
     db.refresh(review)
+
+    track_event(
+        "review.submitted",
+        {
+            "review_id": str(review.id),
+            "order_id": str(order.id),
+            "master_id": str(review.master_id),
+            "rating": review.rating,
+        },
+    )
     return review
