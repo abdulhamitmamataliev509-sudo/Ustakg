@@ -10,6 +10,7 @@ from app.models.enums import OfferStatus, OrderStatus, UserRole
 from app.models.master import MasterProfile
 from app.models.order import Order, OrderOffer
 from app.models.user import User
+from app.models.chat import Chat
 from app.schemas.offer import OfferCreate, OfferOut
 
 router = APIRouter()
@@ -118,4 +119,14 @@ def accept_offer(
     ).update({OrderOffer.status: OfferStatus.REJECTED}, synchronize_session=False)
     db.commit()
     db.refresh(offer)
+    # ensure a Chat exists for this order between customer and master
+    existing_chat = (
+        db.query(Chat)
+        .filter(Chat.order_id == order.id, Chat.customer_id == order.customer_id, Chat.master_id == offer.master_id)
+        .first()
+    )
+    if existing_chat is None:
+        chat = Chat(order_id=order.id, customer_id=order.customer_id, master_id=offer.master_id)
+        db.add(chat)
+        db.commit()
     return offer
