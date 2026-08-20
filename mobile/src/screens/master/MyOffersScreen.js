@@ -18,7 +18,11 @@ export default function MyOffersScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>My Offers</Text>
       <FlatList data={offers} keyExtractor={(i)=>String(i.id)} renderItem={({item}) => (
-        <View style={styles.item}><Text>{item.title || 'Offer'}</Text></View>
+        <View style={styles.item}>
+          <Text>Price: {item.proposed_price} KGS</Text>
+          <Text style={{color:'#666'}}>Status: {item.status}</Text>
+          {item.comment ? <Text style={{color:'#888'}}>{item.comment}</Text> : null}
+        </View>
       )} ListEmptyComponent={<Text>No offers yet.</Text>} />
     </View>
   );

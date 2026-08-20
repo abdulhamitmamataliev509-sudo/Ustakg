@@ -1,7 +1,7 @@
 """Order endpoints: creation, listing, details, and status changes."""
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_current_user
@@ -57,6 +57,24 @@ def list_orders(
     if category_id is not None:
         query = query.filter(Order.category_id == category_id)
     return query.order_by(Order.created_at.desc()).all()
+
+
+@router.get("/my", response_model=list[OrderOut])
+def list_my_orders(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[Order]:
+    """List the current customer's own orders (paginated, authenticated)."""
+    return (
+        db.query(Order)
+        .filter(Order.customer_id == current_user.id)
+        .order_by(Order.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.get("/{order_id}", response_model=OrderDetail)

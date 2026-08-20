@@ -1,7 +1,7 @@
 """Order-offer endpoints: create offers, list order offers, accept offers."""
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_active_master, get_current_user
@@ -57,6 +57,24 @@ def create_offer(
     db.commit()
     db.refresh(offer)
     return offer
+
+
+@router.get("/my", response_model=list[OfferOut])
+def list_my_offers(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    profile: MasterProfile = Depends(get_current_active_master),
+    db: Session = Depends(get_db),
+) -> list[OrderOffer]:
+    """List the current master's own offers (masters only, paginated)."""
+    return (
+        db.query(OrderOffer)
+        .filter(OrderOffer.master_id == profile.id)
+        .order_by(OrderOffer.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.get("/order/{order_id}", response_model=list[OfferOut])

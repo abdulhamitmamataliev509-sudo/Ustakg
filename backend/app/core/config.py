@@ -2,7 +2,7 @@
 from functools import lru_cache
 from typing import Annotated, List
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # Security
-    SECRET_KEY: str = "super-secret-key-change-in-production"
+    SECRET_KEY: str = ""  # REQUIRED — set via env/.env (see .env.example)
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
@@ -54,6 +54,28 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def _secret_key_required(cls, v: str) -> str:
+        """Refuse to boot with an unset SECRET_KEY (empty string default)."""
+        if not v:
+            raise ValueError(
+                "SECRET_KEY must be provided — copy .env.example to .env and set it"
+            )
+        return v
+
+    @model_validator(mode="after")
+    def _guard_insecure_production(self):
+        """Never let the development placeholder reach a production run."""
+        if (
+            self.ENVIRONMENT == "production"
+            and self.SECRET_KEY == "super-secret-key-change-in-production"
+        ):
+            raise ValueError(
+                "SECRET_KEY must not use the development placeholder in production"
+            )
+        return self
 
     @property
     def database_url(self) -> str:

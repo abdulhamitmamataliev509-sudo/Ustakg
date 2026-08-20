@@ -26,8 +26,8 @@ export default function AdminUsers(){
         {users.map(u => (
           <div key={u.id} className="p-3 bg-white rounded flex justify-between items-center">
             <div>
-              <div className="font-semibold">{u.name || u.email}</div>
-              <div className="text-sm text-gray-600">Role: {u.role}</div>
+              <div className="font-semibold">{u.full_name}</div>
+              <div className="text-sm text-gray-600">{u.phone_number} · Role: {u.role} · {u.is_active ? 'Active' : 'Blocked'}</div>
             </div>
             <div className="space-x-2">
               <button onClick={()=>verify(u.id)} className="px-2 py-1 bg-green-600 text-white rounded">Verify</button>

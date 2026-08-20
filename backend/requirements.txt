@@ -25,4 +25,4 @@ python-multipart
 
 # Testing
 pytest
-httpx2  # required by starlette TestClient
+httpx  # required by starlette TestClient (replaces the typosquat 'httpx2')

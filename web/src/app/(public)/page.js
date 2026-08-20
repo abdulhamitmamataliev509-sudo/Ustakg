@@ -25,7 +25,7 @@ export default function LandingPage(){
         <h2 className="text-2xl font-semibold mb-4">Popular Categories</h2>
         <div className="grid grid-cols-3 gap-4">
           {categories.slice(0,9).map((c)=> (
-            <div key={c.id} className="p-4 bg-white rounded shadow">{c.name}</div>
+            <div key={c.id} className="p-4 bg-white rounded shadow">{c.title}</div>
           ))}
         </div>
       </section>

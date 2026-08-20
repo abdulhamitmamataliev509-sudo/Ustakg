@@ -8,26 +8,45 @@ export const useAuthStore = create((set, get) => ({
   role: null,
   restoring: true,
 
-  login: async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
-    const { access_token, user } = res.data;
-    await AsyncStorage.setItem('token', access_token);
-    setAuthToken(access_token);
-    set({ user, token: access_token, role: user.role ?? 'CUSTOMER' });
-    return user;
+  // Backend contract: OAuth2 form (username=phone_number, password)
+  login: async (phoneNumber, password) => {
+    const form = new URLSearchParams();
+    form.append('username', phoneNumber);
+    form.append('password', password);
+    const res = await api.post('/auth/login', form.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    return get()._setSession(res.data);
   },
 
+  // Backend contract: { phone_number, password, full_name, role }
   register: async (payload) => {
-    const res = await api.post('/auth/register', payload);
-    const { access_token, user } = res.data;
-    await AsyncStorage.setItem('token', access_token);
-    setAuthToken(access_token);
-    set({ user, token: access_token, role: user.role ?? payload.role ?? 'CUSTOMER' });
-    return user;
+    const res = await api.post('/auth/register', {
+      phone_number: payload.phone_number,
+      password: payload.password,
+      full_name: payload.full_name,
+      role: payload.role,
+    });
+    return get()._setSession(res.data);
+  },
+
+  _setSession: async (data) => {
+    const accessToken = data?.access_token;
+    if (!accessToken) throw new Error('No access token in response');
+    await AsyncStorage.setItem('token', accessToken);
+    if (data.refresh_token) {
+      await AsyncStorage.setItem('refresh_token', data.refresh_token);
+    }
+    setAuthToken(accessToken);
+    // Backend returns only tokens — fetch the current user afterwards.
+    const me = await api.get('/auth/me');
+    set({ token: accessToken, user: me.data, role: me.data?.role ?? 'CUSTOMER' });
+    return me.data;
   },
 
   logout: async () => {
     await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('refresh_token');
     setAuthToken(null);
     set({ user: null, token: null, role: null });
   },
@@ -37,14 +56,13 @@ export const useAuthStore = create((set, get) => ({
       const token = await AsyncStorage.getItem('token');
       if (token) {
         setAuthToken(token);
-        // try fetch profile
         const res = await api.get('/auth/me');
-        set({ token, user: res.data, role: res.data.role ?? 'CUSTOMER' });
+        set({ token, user: res.data, role: res.data?.role ?? 'CUSTOMER' });
       }
     } catch (e) {
       console.warn('restoreToken error', e.message);
     } finally {
       set({ restoring: false });
     }
-  }
+  },
 }));

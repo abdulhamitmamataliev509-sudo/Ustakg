@@ -8,7 +8,8 @@ export default function OrderFeedScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get('/orders/open');
+        // Backend lists open orders via ?status_filter=OPEN on /orders/
+        const res = await api.get('/orders/', { params: { status_filter: 'OPEN' } });
         setOrders(res.data || []);
       } catch (e) { console.warn(e.message); }
     })();

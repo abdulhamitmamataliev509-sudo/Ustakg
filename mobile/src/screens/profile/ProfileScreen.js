@@ -8,7 +8,8 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile</Text>
-      <Text>{user?.name || user?.email}</Text>
+      <Text>{user?.full_name || user?.phone_number || 'User'}</Text>
+      <Text>{user?.phone_number}</Text>
       <Text>Role: {user?.role}</Text>
       <Button title="Logout" onPress={logout} />
     </View>

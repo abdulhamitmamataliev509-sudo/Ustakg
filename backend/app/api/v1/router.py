@@ -2,21 +2,23 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    admin,
     auth,
     categories,
     chats,
+    health,
     masters,
     offers,
     orders,
     reviews,
     users,
-    health,
 )
 
 api_router = APIRouter()
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
+api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 api_router.include_router(masters.router, prefix="/masters", tags=["masters"])
 api_router.include_router(orders.router, prefix="/orders", tags=["orders"])
 api_router.include_router(offers.router, prefix="/offers", tags=["offers"])

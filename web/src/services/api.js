@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8000/api/v1';
+// Base URL is configurable for production (baked in at build time).
+// Falls back to the local dev backend when unset.
+const API_BASE =
+  process?.env?.NEXT_PUBLIC_API_BASE || 'http://localhost:8000/api/v1';
 
 const api = axios.create({ baseURL: API_BASE, timeout: 10000 });
 

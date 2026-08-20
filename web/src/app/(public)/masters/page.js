@@ -21,10 +21,10 @@ export default function MastersPage(){
         {masters.map(m=> (
           <div key={m.id} className="p-4 bg-white rounded shadow flex justify-between">
             <div>
-              <h3 className="font-semibold">{m.name}</h3>
+              <h3 className="font-semibold">{m.full_name}</h3>
               <div className="text-sm text-gray-600">Rating: {m.rating || '—'}</div>
             </div>
-            <div className="text-sm text-gray-500">{m.category_names?.join(', ')}</div>
+            <div className="text-sm text-gray-500">{(m.categories || []).map(c => c.title).join(', ')}</div>
           </div>
         ))}
       </div>

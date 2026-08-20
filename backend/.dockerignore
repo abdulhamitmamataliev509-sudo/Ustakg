@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+.git/
+*.log
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+tests/
+svr_*.log
+.env
