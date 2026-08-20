@@ -58,7 +58,7 @@ Key flows:
 2. **Matching** — customers create orders; masters submit offers; the customer accepts one offer (others auto-reject) and the order moves to `IN_PROGRESS`.
 3. **Realtime chat** — accepting an offer auto-creates a chat; participants talk live over `WS /api/v1/chats/ws/{chat_id}` (messages persisted to Postgres).
 4. **Trust** — on completion, customers review the master; ratings and review counts are recomputed server-side.
-5. **Observability** — `/api/v1/health` exposes DB/WebSocket/version status; `app/core/analytics.py` emits structured metrics for every key business event.
+5. **Observability** — `/api/v1/health` exposes DB/WebSocket/version status; `/ready` is a PostgreSQL-aware readiness probe; `app/core/logging.py` adds structured JSON request logging; `app/core/analytics.py` emits structured metrics for every key business event.
 
 ---
 
@@ -151,10 +151,15 @@ docker compose down             # stop (add -v to drop the data volume)
 Post-deploy checks:
 
 ```bash
-curl http://<host>/health                 # liveness
+curl http://<host>/health                 # liveness (process up?)
+curl http://<host>/ready                  # readiness (DB reachable? version 1.0.0)
 curl http://<host>/api/v1/health          # DB/WebSocket/version status
 curl http://<host>/api/v1/categories/     # smoke test against real DB
 ```
+
+> **Production health-check cheat sheet:** `/health` = liveness only (no DB I/O, safe for
+> load balancers/uptime monitors). `/ready` = readiness (issues `SELECT 1` to PostgreSQL).
+> See `DEPLOYMENT.md` for wiring these into your LB / container healthchecks.
 
 ---
 
@@ -167,7 +172,8 @@ curl http://<host>/api/v1/categories/     # smoke test against real DB
 
 | Method | Path | Description | Access |
 |---|---|---|---|
-| GET | `/health` | Liveness probe | Public |
+| GET | `/health` | Liveness probe (no DB I/O) | Public |
+| GET | `/ready` | Readiness probe (DB `SELECT 1`, version `1.0.0`) | Public |
 | GET | `/api/v1/health` | DB + WebSocket status, version `1.0.0` | Public |
 | POST | `/api/v1/auth/register` | Register customer/master (returns tokens) | Public |
 | POST | `/api/v1/auth/login` | JWT login (phone + password) | Public |
@@ -217,7 +223,20 @@ The backend emits structured JSON log lines via `app.core.analytics.track_event(
 | `offer.accepted` | Customer accepts a master's offer |
 | `review.submitted` | Review posted after a completed order |
 
-Forward the `ustakg.analytics` logger to your aggregator (ELK, Datadog, CloudWatch, etc.) for dashboards on registrations, orders, conversion, and satisfaction.
+### Structured access logging
+
+`app.core.logging.configure_logging()` installs a JSON `StreamHandler` on the root logger, and
+`RequestLoggingMiddleware` emits one JSON line per HTTP request:
+
+```json
+{"ts": "2026-08-20T12:00:00+0000", "level": "INFO", "logger": "ustakg.access",
+ "message": "request_completed", "method": "GET", "path": "/health",
+ "status_code": 200, "duration_ms": 2.31, "request_id": "-", "client_ip": "127.0.0.1"}
+```
+
+Forward the `ustakg.analytics` and `ustakg.access` loggers to your aggregator (ELK, Datadog,
+CloudWatch, etc.) for dashboards on registrations, orders, conversion, satisfaction, and API
+latency/error rates.
 
 ---
 
